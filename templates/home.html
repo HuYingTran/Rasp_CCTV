@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Camera App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      border: 1px solid #ccc;
+      width: 900px;
+      margin: 20px auto;
+      padding: 10px;
+      position: relative;
+      display: flex;
+    }
+    .camera-section {
+      flex: 2;
+      text-align: center;
+    }
+    .camera-header {
+      background-color: #4A90E2;
+      color: white;
+      padding: 10px;
+      font-size: 18px;
+      width: 100%;
+    }
+    .camera-display {
+      width: 100%;
+      height: 400px;
+      background-image: url("Picture1.png");
+      background-size: cover;
+      background-position: center;
+      border: 2px solid #ccc;
+      margin: 10px 0;
+    }
+    .button-group {
+      justify-content: space-between;
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      background-color: #4A90E2;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+    .zoom-section {
+      flex: 0.5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    input[type="range"] {
+      writing-mode: bt-lr; /* IE */
+      -webkit-appearance: slider-vertical; /* WebKit */
+      height: 200px;
+      margin: 20px 0;
+    }
+    .zoom-value {
+      font-size: 16px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="camera-section">
+      <div><h1>Camera 1</h1></div>
+      <img class="camera-display" id="cameraDisplay" src="/video_feed">
+      <div class="button-group">
+        <button onclick="alert('Đang quay video')">VIDEO</button>
+        <button onclick="alert('Mở camera')">OPEN</button>
+        <button onclick="alert('Chụp ảnh')">CAP</button>
+        <button onclick="alert('Mở thư mục chứa ảnh/video')">FILE</button>
+      </div>
+    </div>
+    <div class="zoom-section">
+      <label>Zoom</label>
+      <input type="range" min="0" max="100" value="50" id="zoomSlider">
+      <div class="zoom-value" id="zoomValue">Zoom 50%</div>
+    </div>
+  </div>
+
+<script>
+    const slider = document.getElementById("zoomSlider");
+    const zoomValue = document.getElementById("zoomValue");
+
+    // Gửi lệnh zoom khi slider thay đổi
+    slider.addEventListener("input", () => {
+        const percent = slider.value;
+        const zoom = (percent / 50).toFixed(2); // Giá trị zoom: 1.0 đến 2.0
+        zoomValue.textContent = `Zoom ${percent}%`;
+
+        fetch(`/zoom/${zoom}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => console.log("Zoom updated:", data))
+            .catch(err => console.error("Lỗi khi gửi zoom:", err));
+    });
+
+    // Hàm gọi API chụp ảnh
+    function capturePhoto() {
+        fetch('/capture')
+            .then(res => res.json())
+            .then(data => {
+                if (data.file) {
+                    alert("Đã chụp ảnh và lưu thành: " + data.file);
+                } else {
+                    alert("Lỗi: " + data.error);
+                }
+            })
+            .catch(err => alert("Lỗi khi chụp ảnh: " + err));
+    }
+
+    // Gán sự kiện nút "CAP"
+    document.querySelector("button:nth-child(3)").addEventListener("click", capturePhoto);
+</script>
+
+</body>
+</html>
