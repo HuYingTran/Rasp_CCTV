@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 8px;
+            margin: 4px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        a {
+            text-decoration: none;
+            color: blue;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <button onclick="window.location.href='/';" style="padding: 10px; background-color: aqua; font-size: 30px;">HOME</button>
+    <h1>List video</h1>
+    <h2>Click on a file to download</h2>
+    <ul>
+        {% for file in files %}
+        <li>
+            <a href="{{ url_for('download_file', filename=file) }}" target="_blank">{{ file }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+
+</html>

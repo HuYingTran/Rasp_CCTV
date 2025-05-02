@@ -29,7 +29,6 @@
     .camera-display {
       width: 100%;
       height: 400px;
-      background-image: url("Picture1.png");
       background-size: cover;
       background-position: center;
       border: 2px solid #ccc;
@@ -48,6 +47,24 @@
       cursor: pointer;
       font-size: 16px;
       border-radius: 5px;
+    }
+    #openButton {
+        background-color: #4A90E2; /* Mặc định màu xanh */
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        border-radius: 5px;
+    }
+    #recordButton {
+      background-color: #4A90E2; /* Mặc định màu xanh */
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
     }
     .zoom-section {
       flex: 0.5;
@@ -74,16 +91,16 @@
       <div><h1>Camera 1</h1></div>
       <img class="camera-display" id="cameraDisplay" src="/video_feed">
       <div class="button-group">
-        <button onclick="alert('Đang quay video')">VIDEO</button>
-        <button onclick="alert('Mở camera')">OPEN</button>
-        <button onclick="alert('Chụp ảnh')">CAP</button>
-        <button onclick="alert('Mở thư mục chứa ảnh/video')">FILE</button>
+        <button id="recordButton" onclick="toggleRecording()">REC</button>
+        <button id="openButton" onclick="toggleCamera()">OPEN</button>
+        <button id="capBtn">CAP</button>
+        <button onclick="window.location.href = 'history';">FILE</button>
       </div>
     </div>
     <div class="zoom-section">
       <label>Zoom</label>
-      <input type="range" min="0" max="100" value="50" id="zoomSlider">
-      <div class="zoom-value" id="zoomValue">Zoom 50%</div>
+      <input type="range" min="0" max="100" value="0" id="zoomSlider">
+      <div class="zoom-value" id="zoomValue">Zoom 0%</div>
     </div>
   </div>
 
@@ -118,7 +135,58 @@
     }
 
     // Gán sự kiện nút "CAP"
-    document.querySelector("button:nth-child(3)").addEventListener("click", capturePhoto);
+    document.getElementById("capBtn").addEventListener("click", capturePhoto);
+
+  // Hàm bật/tắt camera
+  function toggleCamera() {
+    fetch('/toggle_camera', { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+
+        // Thay đổi màu nút tùy theo trạng thái camera
+        const openButton = document.getElementById("openButton");
+        if (data.camera_enabled) {
+          openButton.style.backgroundColor = "#4A90E2"; // Xanh
+          openButton.style.color = "white"; // Chữ trắng
+        } else {
+          openButton.style.backgroundColor = "#E94E77"; // Đỏ
+          openButton.style.color = "white"; // Chữ trắng
+        }
+      })
+      .catch(err => alert("Lỗi khi bật/tắt camera: " + err));
+  }
+
+  let isRecording = false;
+
+  function toggleRecording() {
+    const btn = document.getElementById("recordButton");
+
+    if (!isRecording) {
+      // Bắt đầu quay
+      fetch('/start_record', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message);
+          isRecording = true;
+          btn.textContent = "STOP";
+          btn.style.backgroundColor = "#E94E77"; // Đỏ
+        })
+        .catch(err => alert("Lỗi khi quay video: " + err));
+    } else {
+      // Dừng quay
+      fetch('/stop_record', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message);
+          isRecording = false;
+          btn.textContent = "REC";
+          btn.style.backgroundColor = "#4A90E2"; // Xanh
+        })
+        .catch(err => alert("Lỗi khi dừng video: " + err));
+    }
+  }
+
 </script>
 
 </body>
