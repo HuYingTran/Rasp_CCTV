@@ -1,4 +1,6 @@
+from picamera2 import Picamera2
 import cv2
+
 import threading
 import os
 import sys
@@ -19,24 +21,25 @@ is_recording = False
 video_writer = None
 video_filename = None
 
+picam2 = Picamera2()
+picam2.preview_configuration.main.size = (320, 240)
+picam2.preview_configuration.main.format = "YUV420"
+picam2.configure("preview")
+picam2.start()
+
 def capture_frames():
     global latest_frame, is_recording, video_writer, video_filename
-    cap = cv2.VideoCapture(0)
-
-    if not cap.isOpened():
-        raise RuntimeError("Không thể mở webcam.")
-
     while True:
         if camera_enabled:
-            success, frame = cap.read()
-            if success:
-                with frame_lock:
-                    latest_frame = frame.copy()
+            frame = picam2.capture_array()
+            frame = cv2.cvtColor(frame, cv2.COLOR_YUV2BGR_I420)
+            with frame_lock:
+                latest_frame = frame.copy()
 
-                if is_recording and video_writer is not None:
-                    video_writer.write(frame)
-            else:
-                print("⚠️ Không đọc được frame từ webcam.")
+            if is_recording and video_writer is not None:
+                video_writer.write(frame)
+        else:
+            print("Camera off.")
         time.sleep(0.03)  # giảm tải CPU
 
 def zoom_image(image, zoom=1.0):
@@ -109,7 +112,6 @@ def toggle_camera():
         "message": "Camera đã {}".format("bật" if camera_enabled else "tắt")
     })
 
-
 @app.route('/start_record', methods=['POST'])
 def start_record():
     global is_recording, video_writer, video_filename
@@ -122,7 +124,11 @@ def start_record():
     video_path = os.path.join(UPLOAD_FOLDER, video_filename)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     fps = 20.0
-    frame_size = (640, 480)
+
+    # Lấy frame thực để xác định kích thước chính xác
+    frame = picam2.capture_array()
+    frame = cv2.cvtColor(frame, cv2.COLOR_YUV2BGR_I420)
+    frame_size = (frame.shape[1], frame.shape[0])
 
     video_writer = cv2.VideoWriter(video_path, fourcc, fps, frame_size)
     is_recording = True
@@ -151,9 +157,14 @@ def index():
 
 
 @app.route('/history')
-def history():    
-    # Lấy danh sách thư mục từ máy chủ (ví dụ thư mục hiện tại)
-    files = os.listdir(UPLOAD_FOLDER)  # Đổi thành thư mục bạn muốn duyệt
+def history():
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
+    # Lọc file .mp4 và .jpg
+    files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith(('.mp4', '.jpg'))]
+    # Sắp xếp theo ngày tạo mới nhất (mtime)
+    files.sort(key=lambda x: os.path.getmtime(os.path.join(UPLOAD_FOLDER, x)), reverse=True)
+
     return render_template('explorer.html', files=files)
 
 @app.route('/download/<filename>')

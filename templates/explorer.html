@@ -35,13 +35,25 @@
         a:hover {
             text-decoration: underline;
         }
+
+        .nice-button {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
     </style>
 </head>
 
 <body>
-    <button onclick="window.location.href='/';" style="padding: 10px; background-color: aqua; font-size: 30px;">HOME</button>
+    <button onclick="window.location.href='/';" class="nice-button">HOME</button>
     <h1>List video</h1>
-    <h2>Click on a file to download</h2>
+    <h3>Click on a file to download</h3>
     <ul>
         {% for file in files %}
         <li>
