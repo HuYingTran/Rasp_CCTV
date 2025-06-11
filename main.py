@@ -21,12 +21,14 @@ is_recording = False
 video_writer = None
 video_filename = None
 
+# Khởi tạo Camera bằng thư viện Picamera của Pi
 picam2 = Picamera2()
 picam2.preview_configuration.main.size = (320, 240)
 picam2.preview_configuration.main.format = "YUV420"
 picam2.configure("preview")
 picam2.start()
 
+# Các hàm tạo khung hình từ camera
 def capture_frames():
     global latest_frame, is_recording, video_writer, video_filename
     while True:
@@ -75,6 +77,7 @@ def generate_frames():
                buffer.tobytes() + b'\r\n')
         time.sleep(0.05)
 
+# Hàm API trả về luồng video
 @app.route('/video_feed')
 def video_feed():
     return Response(generate_frames(),
